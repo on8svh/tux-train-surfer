@@ -1,0 +1,14 @@
+[Desktop Entry]
+Type=Application
+Name=Tux Train Surfer
+GenericName=Runner game
+Comment=Outrun the bugs, surf the trains and collect fish with Tux!
+Comment[nl]=Ontloop de bugs, surf over de treinen en verzamel vissen met Tux!
+Comment[de]=Entkomme den Bugs, surfe über Züge und sammle Fische mit Tux!
+Comment[fr]=Échappe aux bugs, surfe sur les trains et attrape des poissons avec Tux !
+Exec=tux-train-surfer
+Icon=${SNAP}/meta/gui/tux-train-surfer.svg
+Terminal=false
+Categories=Game;ArcadeGame;
+Keywords=tux;penguin;linux;runner;train;surfer;fish;
+StartupWMClass=tux-train-surfer

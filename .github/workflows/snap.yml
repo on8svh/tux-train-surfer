@@ -1,0 +1,68 @@
+name: Snap
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm]
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: snapcore/action-build@v1
+        id: build
+      - uses: actions/upload-artifact@v4
+        with:
+          name: snap-${{ matrix.runner }}
+          path: ${{ steps.build.outputs.snap }}
+
+      - name: Install and smoke-test the snap
+        run: |
+          sudo snap install --dangerous ${{ steps.build.outputs.snap }}
+          snap connections tux-train-surfer
+          tux-train-surfer --version
+          tux-train-surfer --smoke-test 240 --level 9 --autoplay --mute --resolution 1280x720 \
+            --screenshot "$HOME/snap/tux-train-surfer/current/smoke.png"
+          tux-train-surfer --smoke-test 30 --lang ja --mute --resolution 1280x720
+          ls -l "$HOME/snap/tux-train-surfer/current/smoke.png"
+
+      - name: Lint the snap
+        run: |
+          sudo snap install review-tools --edge || true
+          if command -v review-tools.snap-review >/dev/null; then
+            review-tools.snap-review --allow-classic ${{ steps.build.outputs.snap }} || true
+          fi
+
+      - name: Publish to edge
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+          release: edge
+
+      - name: Publish to stable
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: snapcore/action-publish@v1
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        with:
+          snap: ${{ steps.build.outputs.snap }}
+          release: stable
+
+      - name: GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ steps.build.outputs.snap }}
+          generate_release_notes: true

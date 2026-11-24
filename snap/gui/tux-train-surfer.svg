@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Tux Train Surfer icon. Original artwork, MIT licence (see LICENSE). -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4f9de6"/>
+      <stop offset="1" stop-color="#cfe8fb"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="124" fill="url(#sky)" stroke="#2c6fb5" stroke-width="6"/>
+  <!-- rails -->
+  <path d="M60 252 L118 150 M196 252 L138 150" stroke="#8f96a6" stroke-width="8" stroke-linecap="round"/>
+  <path d="M70 232 H186 M84 208 H172 M96 186 H160 M106 168 H150" stroke="#6b5444" stroke-width="7"/>
+  <!-- feet -->
+  <ellipse cx="102" cy="226" rx="30" ry="12" fill="#f5a31e"/>
+  <ellipse cx="154" cy="226" rx="30" ry="12" fill="#f5a31e"/>
+  <!-- body -->
+  <ellipse cx="128" cy="168" rx="66" ry="62" fill="#16181e"/>
+  <ellipse cx="128" cy="178" rx="47" ry="50" fill="#f8f8fc"/>
+  <!-- flippers -->
+  <ellipse cx="66" cy="160" rx="12" ry="38" transform="rotate(30 66 160)" fill="#16181e"/>
+  <ellipse cx="190" cy="160" rx="12" ry="38" transform="rotate(-30 190 160)" fill="#16181e"/>
+  <!-- scarf -->
+  <ellipse cx="128" cy="122" rx="48" ry="11" fill="#d72832"/>
+  <path d="M140 124 L162 122 L170 160 L152 158 Z" fill="#d72832"/>
+  <!-- head -->
+  <ellipse cx="128" cy="86" rx="48" ry="44" fill="#16181e"/>
+  <ellipse cx="112" cy="80" rx="13" ry="16" fill="#f8f8fc"/>
+  <ellipse cx="144" cy="80" rx="13" ry="16" fill="#f8f8fc"/>
+  <ellipse cx="115" cy="84" rx="6" ry="8" fill="#16181e"/>
+  <ellipse cx="141" cy="84" rx="6" ry="8" fill="#16181e"/>
+  <path d="M96 58 L122 68 M160 58 L134 68" stroke="#16181e" stroke-width="7" stroke-linecap="round"/>
+  <ellipse cx="128" cy="104" rx="20" ry="9" fill="#f5a31e"/>
+  <!-- fish -->
+  <g transform="rotate(-20 52 196)">
+    <ellipse cx="52" cy="196" rx="24" ry="12" fill="#2878c8"/>
+    <path d="M72 196 L90 184 L86 196 L90 208 Z" fill="#1e5aa0"/>
+    <circle cx="40" cy="193" r="3" fill="#fff"/>
+  </g>
+</svg>
