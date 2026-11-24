@@ -59,11 +59,17 @@ apps:
     environment:
       PYGAME_HIDE_SUPPORT_PROMPT: "1"
       SDL_VIDEO_X11_WMCLASS: tux-train-surfer
+      # same reason as in the part: only use the packages from our own venv
+      PYTHONPATH: ""
 
 parts:
   tux-train-surfer:
     plugin: python
     source: .
+    build-environment:
+      # The gnome extension points PYTHONPATH at the SDK's own Python packages, which makes
+      # the part's venv load an old pip ("cannot import name 'cli'"). Keep the venv clean.
+      - PYTHONPATH: ""
     stage-packages:
       # core24 does not ship Python: staging python3-venv bundles the interpreter
       - python3-venv
