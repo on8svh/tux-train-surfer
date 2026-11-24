@@ -21,6 +21,8 @@ jobs:
           - runner: ubuntu-24.04-arm
             arch: arm64
     runs-on: ${{ matrix.runner }}
+    env:
+      HAS_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS != '' }}
     steps:
       - uses: actions/checkout@v5
 
@@ -66,7 +68,7 @@ jobs:
           echo "::error title=smoke test (${{ matrix.arch }})::${msg}"
 
       - name: Publish to edge
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.SNAPCRAFT_STORE_CREDENTIALS != ''
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.HAS_STORE_CREDENTIALS == 'true'
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
         run: snapcraft upload --release=edge ${{ steps.build.outputs.snap }}
