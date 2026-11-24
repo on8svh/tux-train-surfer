@@ -13,52 +13,69 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
-        runner: [ubuntu-latest, ubuntu-24.04-arm]
+        include:
+          - runner: ubuntu-24.04
+            arch: amd64
+          - runner: ubuntu-24.04-arm
+            arch: arm64
     runs-on: ${{ matrix.runner }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: snapcore/action-build@v1
+      - uses: actions/checkout@v5
+
+      - name: Install snapcraft
+        run: sudo snap install snapcraft --classic
+
+      # The runner is Ubuntu 24.04, the same as the core24 base, so the snap can be
+      # built directly on the host (no LXD/Multipass needed).
+      - name: Build snap
         id: build
+        run: |
+          set -o pipefail
+          sudo snapcraft pack --destructive-mode --verbosity=verbose 2>&1 | tee build.log
+          echo "snap=$(ls *.snap | head -n 1)" >> "$GITHUB_OUTPUT"
+
+      - name: Show build error
+        if: failure()
+        run: |
+          # job logs need a GitHub login; annotations are public, so put the tail there
+          msg=$(tail -n 40 build.log 2>/dev/null | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=snapcraft (${{ matrix.arch }})::${msg}"
+
       - uses: actions/upload-artifact@v4
         with:
-          name: snap-${{ matrix.runner }}
+          name: snap-${{ matrix.arch }}
           path: ${{ steps.build.outputs.snap }}
 
       - name: Install and smoke-test the snap
         run: |
+          set -e
           sudo snap install --dangerous ${{ steps.build.outputs.snap }}
           snap connections tux-train-surfer
           tux-train-surfer --version
           tux-train-surfer --smoke-test 240 --level 9 --autoplay --mute --resolution 1280x720 \
-            --screenshot "$HOME/snap/tux-train-surfer/current/smoke.png"
-          tux-train-surfer --smoke-test 30 --lang ja --mute --resolution 1280x720
+            --screenshot "$HOME/snap/tux-train-surfer/current/smoke.png" 2>&1 | tee smoke.log
+          tux-train-surfer --smoke-test 30 --lang ja --mute --resolution 1280x720 2>&1 | tee -a smoke.log
           ls -l "$HOME/snap/tux-train-surfer/current/smoke.png"
 
-      - name: Lint the snap
+      - name: Show smoke-test error
+        if: failure() && steps.build.outcome == 'success'
         run: |
-          sudo snap install review-tools --edge || true
-          if command -v review-tools.snap-review >/dev/null; then
-            review-tools.snap-review --allow-classic ${{ steps.build.outputs.snap }} || true
-          fi
+          msg=$(tail -n 40 smoke.log 2>/dev/null | sed 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+          echo "::error title=smoke test (${{ matrix.arch }})::${msg}"
 
       - name: Publish to edge
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        uses: snapcore/action-publish@v1
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push' && env.SNAPCRAFT_STORE_CREDENTIALS != ''
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.build.outputs.snap }}
-          release: edge
+        run: snapcraft upload --release=edge ${{ steps.build.outputs.snap }}
 
       - name: Publish to stable
         if: startsWith(github.ref, 'refs/tags/v')
-        uses: snapcore/action-publish@v1
         env:
           SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
-        with:
-          snap: ${{ steps.build.outputs.snap }}
-          release: stable
+        run: snapcraft upload --release=stable ${{ steps.build.outputs.snap }}
 
       - name: GitHub release
         if: startsWith(github.ref, 'refs/tags/v')
